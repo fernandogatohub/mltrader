@@ -1,2 +1,2 @@
-# Run stock_screener.py from monday to saturday at 19:00 HRS
-1 9 * * 1-5 /home/mltrader_agenticus/venv2507/bin/python3 /home/mltrader_agenticus/screener_downloader.py >> /home/mltrader_agenticus/cron_output.log 2>&1
+# Run stock_screener.py from monday to friday at 1:00 HRS Peru time
+2 3 * * 1-5 /home/mltrader_agenticus/stockscreener-2507/mltrader/venv2507/bin/python3 /home/mltrader_agenticus/stockscreener-2507/mltrader/screener_downloader.py >> /home/mltrader_agenticus/stockscreener-2507/mltrader/cron_output.log 2>&1
