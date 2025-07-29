@@ -1,0 +1,1 @@
+echo "Startup script ran at $(date)." | tee -a /var/log/startup-script.log
