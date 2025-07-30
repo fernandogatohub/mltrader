@@ -219,7 +219,7 @@ def main():
         print(f"Failed to retrieve GCS bucket name from Secret Manager: {e}")
         raise
 
-    from datetime import datetime
+    from datetime import datetime, timedelta
     adjusted_time = datetime.now() - timedelta(hours=5)
     today_date_str = adjusted_time.strftime("%Y-%m-%d %H:%M:%S")
     gcs_daily_blob = gcs_bucket_name+"/daily_raw/"+today_date_str+".csv"
