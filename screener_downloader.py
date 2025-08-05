@@ -8,6 +8,9 @@ import glob
 import tempfile
 from google.cloud import storage
 from google.cloud import secretmanager
+import pandas as pd
+from datetime import datetime, timedelta
+import json
 
 def get_secret(project_id, secret_id, version_id="latest"):
     """
@@ -178,7 +181,7 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
 
         print("Download initiated. Waiting for the CSV file to appear in the temporary directory...")
         downloaded_file_path = None
-        for _ in range(60): # Wait up to 60 seconds
+        for _ in range(240): # Wait time
             csv_files = glob.glob(os.path.join(temp_download_dir, "*.csv"))
             if csv_files:
                 downloaded_file_path = csv_files[0]
@@ -188,14 +191,42 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
         else:
             raise FileNotFoundError("Daily CSV file did not appear in the download directory within the expected time.")
 
+        print("Reading daily CSV and adding datetime column...")
+        try:
+            # Read the daily CSV into a pandas DataFrame
+            dtypes_file_path = "screener_dtypes.json"
+            with open(dtypes_file_path, 'r') as f:
+                data_types = json.load(f)
+            new_daily_df = pd.read_csv(downloaded_file_path,dtype=data_types)
+
+            # Convert percentage columns to float
+            percent_columns_path = "percent_columns.json"
+            with open(percent_columns_path) as f:
+                percent_columns = json.load(f)
+            for i in percent_columns:
+                new_daily_df[i] = new_daily_df[i].str.replace('%', '').astype(float)/100
+
+            # Add a new column with the download datetime
+            download_datetime = datetime.now() - timedelta(hours=5)
+            new_daily_df['download_datetime'] = download_datetime
+            
+            # Save the modified DataFrame to the new path
+            modified_file_path = os.path.join(temp_download_dir, "modified_" + os.path.basename(downloaded_file_path))
+            new_daily_df.to_csv(modified_file_path, index=False)
+            print(f"Modified daily CSV saved to: {modified_file_path}")
+
+        except Exception as e:
+            print(f"Failed to modify CSV with datetime column: {e}")
+            raise
+
         # Initialize GCS client
         storage_client = storage.Client(project=project_id)
         bucket = storage_client.bucket(bucket_name)
 
         # Upload daily CSV
         daily_blob = bucket.blob(daily_blob_name)
-        print(f"Uploading daily CSV {downloaded_file_path} to gs://{bucket_name}/{daily_blob_name}...")
-        daily_blob.upload_from_filename(downloaded_file_path)
+        print(f"Uploading daily CSV {modified_file_path} to gs://{bucket_name}/{daily_blob_name}...")
+        daily_blob.upload_from_filename(modified_file_path)
         print(f"Daily CSV uploaded successfully to GCS.")
 
     except Exception as e:
@@ -219,7 +250,6 @@ def main():
         print(f"Failed to retrieve GCS bucket name from Secret Manager: {e}")
         raise
 
-    from datetime import datetime, timedelta
     adjusted_time = datetime.now() - timedelta(hours=5)
     today_date_str = adjusted_time.strftime("%Y-%m-%d %H:%M:%S")
     gcs_daily_blob = gcs_bucket_name+"/daily_raw/"+today_date_str+".csv"
