@@ -1,3 +1,7 @@
+from datetime import datetime, timedelta
+start_time = datetime.now() - timedelta(hours=5)
+print(f"{start_time}: Screener downloader started execution")
+
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,7 +13,6 @@ import tempfile
 from google.cloud import storage
 from google.cloud import secretmanager
 import pandas as pd
-from datetime import datetime, timedelta
 import json
 
 def get_secret(project_id, secret_id, version_id="latest"):
@@ -56,7 +59,7 @@ def initialize_driver(download_dir, headless=True):
     options.add_experimental_option("prefs", chrome_prefs)
 
     # Initialize undetected_chromedriver
-    driver = uc.Chrome(options=options)
+    driver = uc.Chrome(options=options,force_update=True)
     print("Browser launched.")
     return driver
 
