@@ -16,10 +16,12 @@ import glob
 import tempfile
 from google.cloud import storage
 from google.cloud import secretmanager
+from google.cloud import parametermanager_v1
 import pandas as pd
 import json
 import subprocess
 
+#Get project secrets
 def get_secret(project_id, secret_id, version_id="latest"):
     """
     Retrieves a secret from Google Secret Manager.
@@ -35,6 +37,15 @@ def get_secret(project_id, secret_id, version_id="latest"):
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
     response = client.access_secret_version(request={"name": name})
+    return response.payload.data.decode("UTF-8")
+
+#Get project parameter
+def get_parameter(project_id, parameter_id, version_id="unique", location="global"):
+    """Retrieves a parameter from Google Cloud Parameter Manager."""
+    client = parametermanager_v1.ParameterManagerClient()
+    name = client.parameter_version_path(project_id, location, parameter_id, version_id)
+    request = parametermanager_v1.GetParameterVersionRequest(name=name)
+    response = client.get_parameter_version(request=request)
     return response.payload.data.decode("UTF-8")
 
 def initialize_driver(download_dir, headless=True):
@@ -61,24 +72,61 @@ def initialize_driver(download_dir, headless=True):
         log_recorder(f"Falling back to a default Chrome major version: {chrome_major_version}")
 
     log_recorder("Setting up chrome and undetected_chromedriver...")
-    # Set up Chrome preferences
-    chrome_prefs = {
-        "download.default_directory": download_dir,
-        "download.prompt_for_download": False,
-        "download.directory_upgrade": True,
-        "safebrowsing.enabled": True
-    }
-    # Set up undetected_chromedriver options
+    download_dir = os.path.abspath(download_dir)
     options = uc.ChromeOptions()
-    options.headless = headless
-    options.add_argument("--no-sandbox") # Required for running as root in some environments
-    options.add_argument("--disable-dev-shm-usage") # Overcomes limited resource problems
-    options.add_experimental_option("prefs", chrome_prefs)
+    # Do not set options.headless / add_experimental_option: both leak automation
+    # and make Cloudflare stick on "Just a moment...".
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--lang=en-US")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    if headless:
+        options.add_argument("--headless=new")
 
     log_recorder("Launching browser...")
-    driver = uc.Chrome(options=options,version_main = chrome_major_version)
+    driver = uc.Chrome(
+        options=options,
+        version_main=chrome_major_version,
+        use_subprocess=True,
+    )
+    driver.set_page_load_timeout(90)
+    try:
+        driver.execute_cdp_cmd(
+            "Page.setDownloadBehavior",
+            {"behavior": "allow", "downloadPath": download_dir},
+        )
+    except Exception as e:
+        log_recorder(f"Could not set download directory via CDP: {e}")
     log_recorder("Browser launched.")
     return driver
+
+
+def wait_for_login_form(driver, timeout=120):
+    """Wait out Cloudflare's interstitial, then return the email input."""
+    deadline = time.time() + timeout
+    last_title = None
+    email_selector = (By.CSS_SELECTOR, "form#login_form input[name='email']")
+    while time.time() < deadline:
+        title = driver.title or ""
+        if title != last_title:
+            log_recorder(f"Page title: {title!r}")
+            last_title = title
+        title_l = title.lower()
+        if "just a moment" in title_l or "attention required" in title_l:
+            time.sleep(2)
+            continue
+        try:
+            email_input = driver.find_element(*email_selector)
+            if email_input.is_displayed():
+                return email_input
+        except Exception:
+            pass
+        time.sleep(1)
+    raise TimeoutError(
+        f"Login form not found after Cloudflare wait. url={driver.current_url!r} title={driver.title!r}"
+    )
 
 def login(driver, project_id):
     """
@@ -93,34 +141,43 @@ def login(driver, project_id):
     """
     # Fetch sensitive data using the get_secret function
     try:
-        email = get_secret(project_id, "stockanalysis_email")
-        password = get_secret(project_id, "stockanalysis_password")
+        email = get_secret(project_id, "v2_finviz_email")
+        password = get_secret(project_id, "v2_finviz_password")
         log_recorder("Successfully retrieved credentials from Secret Manager.")
     except Exception as e:
         log_recorder(f"Failed to retrieve secrets from Secret Manager: {e}")
         log_recorder("Please ensure the secrets exist and the VM's service account has 'Secret Manager Secret Accessor' role.")
         raise
 
-    # Visit login page
+    # Warm the Cloudflare cookie on the homepage, then open login.
+    log_recorder("Navigating to Finviz homepage...")
+    driver.get("https://finviz.com/")
+    time.sleep(5)
     log_recorder("Navigating to login page...")
-    driver.get("https://stockanalysis.com/login/")
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.NAME, "email"))
-    )
+    driver.get("https://finviz.com/login-email")
+    try:
+        email_input = wait_for_login_form(driver, timeout=120)
+    except Exception:
+        log_recorder(
+            f"Login form not found. url={driver.current_url!r} title={driver.title!r}"
+        )
+        raise
     time.sleep(2)
 
     # Fill in credentials
     log_recorder("Filling in credentials...")
-    driver.find_element(By.NAME, "email").send_keys(email)
-    driver.find_element(By.NAME, "password").send_keys(password)
+    email_input.clear()
+    email_input.send_keys(email)
+    driver.find_element(By.CSS_SELECTOR, "form#login_form input[name='password']").send_keys(password)
 
     # Submit the form
     log_recorder("Clicking login button...")
-    login_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Log In')]")
+    login_button = driver.find_element(By.CSS_SELECTOR, "form#login_form button[type='submit']")
     login_button.click()
     time.sleep(30)
 
-def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, temp_download_dir, working_directory, project_id):
+#working_directory
+def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, temp_download_dir, project_id):
     """
     Navigates to the screener, downloads the CSV, and uploads to GCS.
 
@@ -137,7 +194,8 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
     try:
         # Navigate to the StockAnalysis screener page
         log_recorder("Navigating to the StockAnalysis screener page...")
-        driver.get("https://stockanalysis.com/stocks/screener/")
+        driver.get("https://elite.finviz.com/screener?v=151&ft=4&preset=s151740538")
+        '''
         WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.XPATH, "//button[contains(., 'ML View')]"))
         )
@@ -150,16 +208,16 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
         log_recorder("Clicking 'ML View' tab...")
         ml_view_tab.click()
         time.sleep(3)
-
-        # --- Attempt to click the primary download button that opens the dropdown ---
+        '''
+        # --- Attempt to click the primary export button that opens the dropdown ---
         download_button_clicked = False
-        log_recorder("Attempting to click the 'Download' button to open the dropdown...")
+        log_recorder("Attempting to click the 'Export' button to open the dropdown...")
 
         # Strategy: Try to find a button that *opens* the dropdown.
         # Prioritize a button with exact text 'Download', then one containing 'Download'
         button_xpaths_to_try = [
-            "//button[text()='Download']", # Exact text 'Download'
-            "//button[contains(., 'Download')]" # Contains 'Download'
+            "//button[text()='Export']" # Exact text 'Download'
+            #"//button[contains(., 'Download')]" # Contains 'Download'
         ]
 
         for xpath in button_xpaths_to_try:
@@ -178,6 +236,7 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
         if not download_button_clicked:
             log_recorder("No primary download button found or clickable to open the dropdown. Proceeding, assuming 'Download to CSV' might be directly visible.")
 
+        '''
         if download_button_clicked:
             log_recorder("Waiting for the dropdown menu to appear...")
             try:
@@ -195,9 +254,10 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
         download_csv_option = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Download to CSV')] | //button[contains(., 'Download to CSV')]"))
         )
-        
+
         log_recorder("Clicking 'Download to CSV' option...")
         download_csv_option.click()
+        '''
 
         log_recorder("Download initiated. Waiting for the CSV file to appear in the temporary directory...")
         downloaded_file_path = None
@@ -210,7 +270,8 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
             time.sleep(1)
         else:
             raise FileNotFoundError("Daily CSV file did not appear in the download directory within the expected time.")
-
+        
+        '''
         log_recorder("Reading daily CSV and adding datetime column...")
         try:
             # Read the daily CSV into a pandas DataFrame
@@ -238,15 +299,15 @@ def download_stock_screener_csv_to_gcs(driver, bucket_name, daily_blob_name, tem
         except Exception as e:
             log_recorder(f"Failed to modify CSV with datetime column: {e}")
             raise
-
+        '''
         # Initialize GCS client
         storage_client = storage.Client(project=project_id)
         bucket = storage_client.bucket(bucket_name)
 
         # Upload daily CSV
         daily_blob = bucket.blob(daily_blob_name)
-        log_recorder(f"Uploading daily CSV {modified_file_path} to gs://{bucket_name}/{daily_blob_name}...")
-        daily_blob.upload_from_filename(modified_file_path)
+        log_recorder(f"Uploading daily CSV {downloaded_file_path} to gs://{bucket_name}/{daily_blob_name}...")
+        daily_blob.upload_from_filename(downloaded_file_path)
         log_recorder(f"Daily CSV uploaded successfully to GCS.")
 
     except Exception as e:
@@ -264,7 +325,8 @@ def main():
     
     # Retrieve GCS bucket name from Secret Manager
     try:
-        gcs_bucket_name = get_secret(project_id, "bucket_name") # Assuming you have a secret named 'bucket_name'
+        #gcs_bucket_name = get_secret(project_id, "v2_bucket_name")
+        gcs_bucket_name = get_parameter(project_id, parameter_id="v2_bucket_name")
         log_recorder(f"Retrieved GCS bucket name: {gcs_bucket_name}")
     except Exception as e:
         log_recorder(f"Failed to retrieve GCS bucket name from Secret Manager: {e}")
@@ -273,7 +335,8 @@ def main():
     adjusted_time = datetime.now() - timedelta(hours=5)
     today_date_str = adjusted_time.strftime("%Y-%m-%d %H:%M:%S")
     gcs_daily_blob = gcs_bucket_name+"/daily_raw/"+today_date_str+".csv"
-    working_directory = get_secret(project_id, 'working_directory', version_id="latest")
+    #working_directory = get_secret(project_id, 'v2_working_directory', version_id="latest")
+    #working_directory = get_parameter(project_id, parameter_id="v2_working_directory")
     
     # Use a temporary directory for the entire operation
     tdd = tempfile.TemporaryDirectory()
@@ -288,12 +351,12 @@ def main():
 
         # Download and upload
         log_recorder("Downloading CSV...")
+        #working_directory
         download_stock_screener_csv_to_gcs(
             driver=driver,
             bucket_name=gcs_bucket_name,
             daily_blob_name=gcs_daily_blob,
             temp_download_dir=tdd.name,
-            working_directory=working_directory,
             project_id=project_id
         )
         log_recorder("Download was successful...")
