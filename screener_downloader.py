@@ -6,20 +6,9 @@ def log_recorder(message):
 log_recorder("Screener downloader started execution.")
 
 #Import packages
-#import undetected_chromedriver as uc
-#from selenium.webdriver.common.by import By
-#from selenium.webdriver.support.ui import WebDriverWait
-#from selenium.webdriver.support import expected_conditions as EC
-#import time
-#import os
-#import glob
-#import tempfile
 from google.cloud import storage
 from google.cloud import secretmanager
 from google.cloud import parametermanager_v1
-#import pandas as pd
-#import json
-#import subprocess
 import requests
 
 #Get project secrets
@@ -97,12 +86,13 @@ def download_screener(project_id, bucket_name, daily_blob_name, view, token):
 
 def main():
     #SET VARIABLES
+
+    #Get project ID
     import google.auth
-    credentials, project_id = google.auth.default() # Inferred project ID
+    credentials, project_id = google.auth.default()
     
-    # Retrieve GCS bucket name from Secret Manager
+    # Retrieve GCS bucket name from Parameter Manager
     try:
-        #gcs_bucket_name = get_secret(project_id, "v2_bucket_name")
         gcs_bucket_name = get_parameter(project_id, parameter_id="v2_bucket_name")
         log_recorder(f"Retrieved GCS bucket name: {gcs_bucket_name}")
     except Exception as e:
