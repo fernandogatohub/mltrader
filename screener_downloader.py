@@ -6,10 +6,13 @@ def log_recorder(message):
 log_recorder("Screener downloader started execution.")
 
 #Import packages
+from email.message import EmailMessage
+import google.auth
 from google.cloud import storage
 from google.cloud import secretmanager
 from google.cloud import parametermanager_v1
 import requests
+import smtplib
 
 #Get project secrets
 def get_secret(project_id, secret_id, version_id="latest"):
@@ -83,32 +86,40 @@ def download_screener(project_id, bucket_name, daily_blob_name, view, token):
 
     log_recorder(f"Daily CSV uploaded successfully to GCS in text/csv format.")
 
+#Send failure alert
+def send_email_alert(project_id, error_message):
+    app_password = get_secret(project_id, "v2_sender_password")
+    email_sender = get_parameter(project_id, parameter_id="v2_email_sender")
+    email_receiver = get_parameter(project_id, parameter_id="v2_email_receiver")
+
+    msg = EmailMessage()
+    msg.set_content(f"The ML Trader V2 Finviz screener download failed.\n\nError details:\n{error_message}")
+    msg['Subject'] = 'ALERT: ML Trader V2 Failed'
+    msg['From'] = email_sender
+    msg['To'] = email_receiver
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        smtp.login(email_sender, app_password)
+        smtp.send_message(msg)
 
 def main():
-    #SET VARIABLES
-
     #Get project ID
-    import google.auth
     credentials, project_id = google.auth.default()
     
-    # Retrieve GCS bucket name from Parameter Manager
     try:
+        # Retrieve GCS bucket name from Parameter Manager
         gcs_bucket_name = get_parameter(project_id, parameter_id="v2_bucket_name")
         log_recorder(f"Retrieved GCS bucket name: {gcs_bucket_name}")
-    except Exception as e:
-        log_recorder(f"Failed to retrieve GCS bucket name from Secret Manager: {e}")
-        raise
-    
-    #Get daily blob path
-    adjusted_time = datetime.now() - timedelta(hours=5)
-    today_date_str = adjusted_time.strftime("%Y-%m-%d %H:%M:%S")
-    gcs_daily_blob = gcs_bucket_name+"/daily_raw/"+today_date_str+".csv"
 
-    #Hardocoded variables
-    view="v2_finviz_view"
-    token="v2_finviz_api_token"
-    
-    try:
+        #Get daily blob path
+        adjusted_time = datetime.now() - timedelta(hours=5)
+        today_date_str = adjusted_time.strftime("%Y-%m-%d %H:%M:%S")
+        gcs_daily_blob = gcs_bucket_name + "/daily_raw/" + today_date_str + ".csv"
+
+        #Hardocoded variables
+        view = "v2_finviz_view"
+        token = "v2_finviz_api_token"
+
         log_recorder("Downloading CSV...")
         download_screener(
             bucket_name=gcs_bucket_name,
@@ -120,6 +131,10 @@ def main():
         log_recorder("Download was successful...")
     except Exception as e:
         log_recorder(f"Script failed: {e}")
+        try:
+            send_email_alert(project_id, str(e))
+        except Exception as mail_err:
+            log_recorder(f"Email alert failed: {mail_err}")
 
 if __name__ == "__main__":
     main()
