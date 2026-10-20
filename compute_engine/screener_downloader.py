@@ -87,20 +87,35 @@ def download_screener(project_id, bucket_name, daily_blob_name, view, token):
     log_recorder(f"Daily CSV uploaded successfully to GCS in text/csv format.")
 
 #Send failure alert
-def send_email_alert(project_id, error_message):
-    app_password = get_secret(project_id, "v2_sender_password")
-    email_sender = get_parameter(project_id, parameter_id="v2_email_sender")
-    email_receiver = get_parameter(project_id, parameter_id="v2_email_receiver")
+def send_email_alert(project_id, error_message, eswitch=0):
+    """
+    Sends an email alert if an error occurs during the screener download process.
 
-    msg = EmailMessage()
-    msg.set_content(f"The ML Trader V2 Finviz screener download failed.\n\nError details:\n{error_message}")
-    msg['Subject'] = 'ALERT: ML Trader V2 Failed'
-    msg['From'] = email_sender
-    msg['To'] = email_receiver
+    Args:
+        project_id (str): GCP project identifier to fetch email parameters and secrets.
+        error_message (str): The error message or exception details to include in the alert.
+        eswitch (int): Switch parameter for sending email (1 to send, else do not send).
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        smtp.login(email_sender, app_password)
-        smtp.send_message(msg)
+    Returns:
+        None
+    """
+    eswitch = get_parameter(project_id, parameter_id="v2_email_switch")
+    if eswitch == 1: 
+        app_password = get_secret(project_id, "v2_sender_password")
+        email_sender = get_parameter(project_id, parameter_id="v2_email_sender")
+        email_receiver = get_parameter(project_id, parameter_id="v2_email_receiver")
+
+        msg = EmailMessage()
+        msg.set_content(f"The ML Trader V2 Finviz screener download failed.\n\nError details:\n{error_message}")
+        msg['Subject'] = 'ALERT: ML Trader V2 Failed'
+        msg['From'] = email_sender
+        msg['To'] = email_receiver
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(email_sender, app_password)
+            smtp.send_message(msg)
+    else:
+        log_recorder(f"Script failed but email alert was not sent since parameter v2_email_switch <> 1")
 
 def main():
     #Get project ID
@@ -113,8 +128,8 @@ def main():
 
         #Get daily blob path
         adjusted_time = datetime.now() - timedelta(hours=5)
-        today_date_str = adjusted_time.strftime("%Y-%m-%d %H:%M:%S")
-        gcs_daily_blob = gcs_bucket_name + "/daily_raw/" + today_date_str + ".csv"
+        today_date_str = adjusted_time.strftime("%Y-%m-%d/%H-%M-%S")
+        gcs_daily_blob = gcs_bucket_name + "/daily_raw/DOWNLOAD_DATE=" + today_date_str + ".csv"
 
         #Hardocoded variables
         view = "v2_finviz_view"

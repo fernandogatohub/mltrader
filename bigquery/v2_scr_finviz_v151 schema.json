@@ -1,0 +1,614 @@
+[
+  {
+    "name": "NO",
+    "type": "FLOAT"
+  },
+  {
+    "name": "TICKER",
+    "type": "STRING"
+  },
+  {
+    "name": "COMPANY",
+    "type": "STRING"
+  },
+  {
+    "name": "SECURITY_TYPE",
+    "type": "STRING"
+  },
+  {
+    "name": "INDEX",
+    "type": "STRING"
+  },
+  {
+    "name": "SECTOR",
+    "type": "STRING"
+  },
+  {
+    "name": "INDUSTRY",
+    "type": "STRING"
+  },
+  {
+    "name": "COUNTRY",
+    "type": "STRING"
+  },
+  {
+    "name": "EXCHANGE",
+    "type": "STRING"
+  },
+  {
+    "name": "MARKET_CAP",
+    "type": "FLOAT"
+  },
+  {
+    "name": "P_E",
+    "type": "FLOAT"
+  },
+  {
+    "name": "FORWARD_P_E",
+    "type": "FLOAT"
+  },
+  {
+    "name": "PEG",
+    "type": "FLOAT"
+  },
+  {
+    "name": "P_S",
+    "type": "FLOAT"
+  },
+  {
+    "name": "P_B",
+    "type": "FLOAT"
+  },
+  {
+    "name": "P_CASH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "P_FREE_CASH_FLOW",
+    "type": "FLOAT"
+  },
+  {
+    "name": "BOOK_SH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "CASH_SH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "DIVIDEND",
+    "type": "FLOAT"
+  },
+  {
+    "name": "DIVIDEND_YIELD",
+    "type": "STRING"
+  },
+  {
+    "name": "DIVIDEND_TTM",
+    "type": "FLOAT"
+  },
+  {
+    "name": "DIVIDEND_EX_DATE",
+    "type": "STRING"
+  },
+  {
+    "name": "DIVIDEND_GROWTH_1_YEAR",
+    "type": "STRING"
+  },
+  {
+    "name": "DIVIDEND_GROWTH_3_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "DIVIDEND_GROWTH_5_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "PAYOUT_RATIO",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_TTM",
+    "type": "FLOAT"
+  },
+  {
+    "name": "EPS_NEXT_Q",
+    "type": "FLOAT"
+  },
+  {
+    "name": "EPS_GROWTH_THIS_YEAR",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_GROWTH_NEXT_YEAR",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_GROWTH_PAST_3_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_GROWTH_PAST_5_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_GROWTH_NEXT_5_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "SALES_GROWTH_PAST_3_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "SALES_GROWTH_PAST_5_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "SALES_GROWTH_QUARTER_OVER_QUARTER",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_GROWTH_QUARTER_OVER_QUARTER",
+    "type": "STRING"
+  },
+  {
+    "name": "EPS_YEAR_OVER_YEAR_TTM",
+    "type": "STRING"
+  },
+  {
+    "name": "SALES_YEAR_OVER_YEAR_TTM",
+    "type": "STRING"
+  },
+  {
+    "name": "SALES",
+    "type": "FLOAT"
+  },
+  {
+    "name": "INCOME",
+    "type": "FLOAT"
+  },
+  {
+    "name": "EPS_SURPRISE",
+    "type": "STRING"
+  },
+  {
+    "name": "REVENUE_SURPRISE",
+    "type": "STRING"
+  },
+  {
+    "name": "ENTERPRISE_VALUE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "EV_EBITDA",
+    "type": "FLOAT"
+  },
+  {
+    "name": "EV_SALES",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SHARES_OUTSTANDING",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SHARES_FLOAT",
+    "type": "FLOAT"
+  },
+  {
+    "name": "FLOAT_PCT",
+    "type": "STRING"
+  },
+  {
+    "name": "INSIDER_OWNERSHIP",
+    "type": "STRING"
+  },
+  {
+    "name": "INSIDER_TRANSACTIONS",
+    "type": "STRING"
+  },
+  {
+    "name": "INSTITUTIONAL_OWNERSHIP",
+    "type": "STRING"
+  },
+  {
+    "name": "INSTITUTIONAL_TRANSACTIONS",
+    "type": "STRING"
+  },
+  {
+    "name": "SHORT_FLOAT",
+    "type": "STRING"
+  },
+  {
+    "name": "SHORT_RATIO",
+    "type": "FLOAT"
+  },
+  {
+    "name": "SHORT_INTEREST",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RETURN_ON_ASSETS",
+    "type": "STRING"
+  },
+  {
+    "name": "RETURN_ON_EQUITY",
+    "type": "STRING"
+  },
+  {
+    "name": "RETURN_ON_INVESTED_CAPITAL",
+    "type": "STRING"
+  },
+  {
+    "name": "CURRENT_RATIO",
+    "type": "FLOAT"
+  },
+  {
+    "name": "QUICK_RATIO",
+    "type": "FLOAT"
+  },
+  {
+    "name": "LT_DEBT_EQUITY",
+    "type": "FLOAT"
+  },
+  {
+    "name": "TOTAL_DEBT_EQUITY",
+    "type": "FLOAT"
+  },
+  {
+    "name": "GROSS_MARGIN",
+    "type": "STRING"
+  },
+  {
+    "name": "OPERATING_MARGIN",
+    "type": "STRING"
+  },
+  {
+    "name": "PROFIT_MARGIN",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_1_MINUTE",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_2_MINUTES",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_3_MINUTES",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_5_MINUTES",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_10_MINUTES",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_15_MINUTES",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_30_MINUTES",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_1_HOUR",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_2_HOURS",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_4_HOURS",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_WEEK",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_MONTH",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_QUARTER",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_HALF_YEAR",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_YTD",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_YEAR",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_3_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_5_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "PERFORMANCE_10_YEARS",
+    "type": "STRING"
+  },
+  {
+    "name": "BETA",
+    "type": "FLOAT"
+  },
+  {
+    "name": "AVERAGE_TRUE_RANGE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "VOLATILITY_WEEK",
+    "type": "STRING"
+  },
+  {
+    "name": "VOLATILITY_MONTH",
+    "type": "STRING"
+  },
+  {
+    "name": "20_DAY_SIMPLE_MOVING_AVERAGE",
+    "type": "STRING"
+  },
+  {
+    "name": "50_DAY_SIMPLE_MOVING_AVERAGE",
+    "type": "STRING"
+  },
+  {
+    "name": "200_DAY_SIMPLE_MOVING_AVERAGE",
+    "type": "STRING"
+  },
+  {
+    "name": "50_DAY_HIGH",
+    "type": "STRING"
+  },
+  {
+    "name": "50_DAY_LOW",
+    "type": "STRING"
+  },
+  {
+    "name": "52_WEEK_HIGH",
+    "type": "STRING"
+  },
+  {
+    "name": "52_WEEK_LOW",
+    "type": "STRING"
+  },
+  {
+    "name": "52_WEEK_RANGE",
+    "type": "STRING"
+  },
+  {
+    "name": "ALL_TIME_HIGH",
+    "type": "STRING"
+  },
+  {
+    "name": "ALL_TIME_LOW",
+    "type": "STRING"
+  },
+  {
+    "name": "RELATIVE_STRENGTH_INDEX_14",
+    "type": "FLOAT"
+  },
+  {
+    "name": "EARNINGS_DATE",
+    "type": "STRING"
+  },
+  {
+    "name": "IPO_DATE",
+    "type": "STRING"
+  },
+  {
+    "name": "OPTIONABLE",
+    "type": "STRING"
+  },
+  {
+    "name": "SHORTABLE",
+    "type": "STRING"
+  },
+  {
+    "name": "EMPLOYEES",
+    "type": "FLOAT"
+  },
+  {
+    "name": "CHANGE_FROM_OPEN",
+    "type": "STRING"
+  },
+  {
+    "name": "GAP",
+    "type": "STRING"
+  },
+  {
+    "name": "ANALYST_RECOM",
+    "type": "FLOAT"
+  },
+  {
+    "name": "AVERAGE_VOLUME",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RELATIVE_VOLUME",
+    "type": "FLOAT"
+  },
+  {
+    "name": "VOLUME",
+    "type": "FLOAT"
+  },
+  {
+    "name": "TRADES",
+    "type": "FLOAT"
+  },
+  {
+    "name": "TARGET_PRICE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "PREV_CLOSE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "OPEN",
+    "type": "FLOAT"
+  },
+  {
+    "name": "HIGH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "LOW",
+    "type": "FLOAT"
+  },
+  {
+    "name": "PRICE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "CHANGE",
+    "type": "STRING"
+  },
+  {
+    "name": "AFTER_HOURS_CLOSE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "AFTER_HOURS_CHANGE",
+    "type": "STRING"
+  },
+  {
+    "name": "AFTER_HOURS_VOLUME",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NEWS_TIME",
+    "type": "STRING"
+  },
+  {
+    "name": "NEWS_URL",
+    "type": "STRING"
+  },
+  {
+    "name": "NEWS_TITLE",
+    "type": "STRING"
+  },
+  {
+    "name": "DAILY_DIGEST",
+    "type": "STRING"
+  },
+  {
+    "name": "SINGLE_CATEGORY",
+    "type": "STRING"
+  },
+  {
+    "name": "ASSET_TYPE",
+    "type": "STRING"
+  },
+  {
+    "name": "ETF_TYPE",
+    "type": "STRING"
+  },
+  {
+    "name": "SECTOR_THEME",
+    "type": "STRING"
+  },
+  {
+    "name": "REGION",
+    "type": "STRING"
+  },
+  {
+    "name": "ACTIVE_PASSIVE",
+    "type": "STRING"
+  },
+  {
+    "name": "NET_EXPENSE_RATIO",
+    "type": "STRING"
+  },
+  {
+    "name": "TOTAL_HOLDINGS",
+    "type": "FLOAT"
+  },
+  {
+    "name": "ASSETS_UNDER_MANAGEMENT",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_ASSET_VALUE",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_ASSET_VALUE_PCT",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_1_MONTH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_PCT_1_MONTH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_3_MONTH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_PCT_3_MONTH",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_YTD",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_PCT_YTD",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_1_YEAR",
+    "type": "FLOAT"
+  },
+  {
+    "name": "NET_FLOWS_PCT_1_YEAR",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RETURN_1_YEAR",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RETURN_3_YEAR",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RETURN_5_YEAR",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RETURN_10_YEAR",
+    "type": "FLOAT"
+  },
+  {
+    "name": "RETURN_SINCE_INCEPTION",
+    "type": "FLOAT"
+  },
+  {
+    "name": "TAGS",
+    "type": "STRING"
+  },
+  {
+    "name": "DOWNLOAD_DATE",
+    "type": "DATE"
+  }
+]
